@@ -1,76 +1,81 @@
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { useEffect, useRef } from "react";
-import ChatHeader from "./ChatHeader";
-import MessageInput from "./MessageInput";
+import GroupChatHeader from "./GroupChatHeader";
+import GroupMessageInput from "./GroupMessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { formatMessageTime } from "../lib/utils";
 
-const ChatContainer = () => {
+const GroupChatContainer = () => {
   const {
-    selectedUser,
-    getDirectMessages,
-    messages,
+    selectedGroup,
+    getGroupMessages,
+    groupMessages,
     isMessagesLoading,
-    subscribeToDirectMessages,
-    unsubscribeFromDirectMessages,
+    subscribeToGroupMessages,
+    unsubscribeFromGroupMessages,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageScrollEnd = useRef(null);
 
   useEffect(() => {
-    getDirectMessages(selectedUser._id);
-    subscribeToDirectMessages();
+    if (selectedGroup?._id) {
+      getGroupMessages(selectedGroup._id);
+      subscribeToGroupMessages();
+    }
 
-    return () => unsubscribeFromDirectMessages();
+    return () => unsubscribeFromGroupMessages();
   }, [
-    selectedUser._id,
-    getDirectMessages,
-    subscribeToDirectMessages,
-    unsubscribeFromDirectMessages,
+    selectedGroup?._id,
+    getGroupMessages,
+    subscribeToGroupMessages,
+    unsubscribeFromGroupMessages,
   ]);
 
   useEffect(() => {
-    if (messageScrollEnd.current && messages)
+    if (messageScrollEnd.current && groupMessages) {
       messageScrollEnd.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    }
+  }, [groupMessages]);
 
-  if (isMessagesLoading)
+  if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
-        <ChatHeader />
+        <GroupChatHeader />
         <MessageSkeleton />
-        <MessageInput />
+        <GroupMessageInput />
       </div>
     );
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
-      <ChatHeader />
+      <GroupChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, idx) => (
+        {groupMessages.map((message, idx) => (
           <div
             key={message._id || idx}
             className={`chat ${
-              message.senderId === authUser._id ? "chat-end" : "chat-start"
+              message.senderId._id === authUser._id ? "chat-end" : "chat-start"
             }`}
             ref={messageScrollEnd}
           >
-            <div className=" chat-image avatar">
+            <div className="chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
                   src={
-                    message.senderId === authUser._id
-                      ? authUser.profilePic || "/avatar.png"
-                      : selectedUser.profilePic || "/avatar.png"
+                    message.senderId.profilePicture || "/avatar.png"
                   }
                   alt="profile pic"
                 />
               </div>
             </div>
             <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
+              <span className="text-sm font-medium mr-2">
+                {message.senderId.name}
+              </span>
+              <time className="text-xs opacity-50">
                 {formatMessageTime(message.createdAt)}
               </time>
             </div>
@@ -88,9 +93,9 @@ const ChatContainer = () => {
         ))}
       </div>
 
-      <MessageInput />
+      <GroupMessageInput />
     </div>
   );
 };
 
-export default ChatContainer;
+export default GroupChatContainer;

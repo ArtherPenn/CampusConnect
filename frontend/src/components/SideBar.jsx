@@ -73,18 +73,25 @@
 import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users, Search, X, Plus } from "lucide-react";
+import { Users, Search, X, Plus, MessageCircle, UserPlus } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import CreateGroupModal from "./CreateGroupModal";
 
 const SideBar = () => {
   const [isAdding, setIsAdding] = useState(false);
+  const [activeTab, setActiveTab] = useState("contacts"); // "contacts" or "groups"
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
 
   const {
     getUsers,
     users,
+    groups,
+    getGroups,
     isUsersLoading,
     selectedUser,
+    selectedGroup,
     setSelectedUser,
+    setSelectedGroup,
     getAddedUsers,
     allUsers,
     addUsersToContacts,
@@ -99,7 +106,8 @@ const SideBar = () => {
   useEffect(() => {
     getAddedUsers();
     getUsers();
-  }, [getAddedUsers, getUsers]);
+    getGroups();
+  }, [getAddedUsers, getUsers, getGroups]);
 
   // Filter users based on search query
   useEffect(() => {
@@ -146,34 +154,70 @@ const SideBar = () => {
   if (isUsersLoading) return <SidebarSkeleton />;
 
   return (
+    <>
     <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200 relative">
       <div className="border-b border-base-300 w-full p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Users className="size-6" />
-          <span className="font-medium hidden lg:block">Contacts</span>
-        </div>
-
-        {/* Search Bar */}
-        <div className="hidden lg:block">
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-1 mb-4 bg-base-200 rounded-lg p-1">
           <button
-            onClick={handleSearchClick}
-            className="w-full flex items-center gap-2 p-2 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
+            onClick={() => setActiveTab("contacts")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${
+              activeTab === "contacts" 
+                ? "bg-base-100 text-base-content shadow-sm" 
+                : "text-base-content/70 hover:text-base-content"
+            }`}
           >
-            <Search className="size-4 text-base-content/60" />
-            <span className="text-base-content/60 text-sm">
-              Search users...
-            </span>
+            <MessageCircle className="size-4" />
+            <span className="hidden lg:inline">Chats</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("groups")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${
+              activeTab === "groups" 
+                ? "bg-base-100 text-base-content shadow-sm" 
+                : "text-base-content/70 hover:text-base-content"
+            }`}
+          >
+            <Users className="size-4" />
+            <span className="hidden lg:inline">Groups</span>
           </button>
         </div>
 
-        {/* Mobile Search Button */}
-        <div className="lg:hidden flex justify-center">
-          <button
-            onClick={handleSearchClick}
-            className="p-2 rounded-lg hover:bg-base-300 transition-colors"
-          >
-            <Search className="size-5" />
-          </button>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          {/* Search Bar */}
+          <div className="flex-1 hidden lg:block">
+            <button
+              onClick={handleSearchClick}
+              className="w-full flex items-center gap-2 p-2 bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
+            >
+              <Search className="size-4 text-base-content/60" />
+              <span className="text-base-content/60 text-sm">
+                {activeTab === "contacts" ? "Search users..." : "Search groups..."}
+              </span>
+            </button>
+          </div>
+
+          {/* Mobile Search Button */}
+          <div className="lg:hidden">
+            <button
+              onClick={handleSearchClick}
+              className="p-2 rounded-lg hover:bg-base-300 transition-colors"
+            >
+              <Search className="size-5" />
+            </button>
+          </div>
+
+          {/* Create Group Button */}
+          {activeTab === "groups" && (
+            <button
+              onClick={() => setShowCreateGroup(true)}
+              className="p-2 rounded-lg hover:bg-base-300 transition-colors"
+              title="Create Group"
+            >
+              <UserPlus className="size-5" />
+            </button>
+          )}
         </div>
 
         {/* TODO: Online filter toggle */}
@@ -257,45 +301,108 @@ const SideBar = () => {
 
       {/* Contacts List */}
       <div className="overflow-y-auto w-full py-3">
-        {users.map((user) => (
-          <button
-            key={user._id}
-            onClick={() => setSelectedUser(user)}
-            className={`
-              w-full p-3 flex items-center gap-3
-              hover:bg-base-300 transition-colors
-              ${
-                selectedUser?._id === user._id
-                  ? "bg-base-300 ring-1 ring-base-300"
-                  : ""
-              }
-            `}
-          >
-            <div className="relative mx-auto lg:mx-0">
-              <img
-                src={user.profilePic || "/avatar.png"}
-                alt={user.name}
-                className="size-12 object-cover rounded-full"
-              />
-              {onlineUsers.includes(user._id) && (
-                <span
-                  className="absolute bottom-0 right-0 size-3 bg-green-500 
-                  rounded-full ring-2 ring-zinc-900"
+        {activeTab === "contacts" ? (
+          // Direct Messages/Contacts
+          users.map((user) => (
+            <button
+              key={user._id}
+              onClick={() => {
+                setSelectedUser(user);
+                setSelectedGroup(null);
+              }}
+              className={`
+                w-full p-3 flex items-center gap-3
+                hover:bg-base-300 transition-colors
+                ${
+                  selectedUser?._id === user._id
+                    ? "bg-base-300 ring-1 ring-base-300"
+                    : ""
+                }
+              `}
+            >
+              <div className="relative mx-auto lg:mx-0">
+                <img
+                  src={user.profilePic || "/avatar.png"}
+                  alt={user.name}
+                  className="size-12 object-cover rounded-full"
                 />
-              )}
-            </div>
-
-            {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.name}</div>
-              <div className="text-sm text-zinc-400">
-                {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                {onlineUsers.includes(user._id) && (
+                  <span
+                    className="absolute bottom-0 right-0 size-3 bg-green-500 
+                    rounded-full ring-2 ring-zinc-900"
+                  />
+                )}
               </div>
-            </div>
-          </button>
-        ))}
+
+              {/* User info - only visible on larger screens */}
+              <div className="hidden lg:block text-left min-w-0">
+                <div className="font-medium truncate">{user.name}</div>
+                <div className="text-sm text-zinc-400">
+                  {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                </div>
+              </div>
+            </button>
+          ))
+        ) : (
+          // Groups
+          groups.map((group) => {
+            const onlineMembers = group.members?.filter(member => 
+              onlineUsers.includes(member._id)
+            ) || [];
+            
+            return (
+              <button
+                key={group._id}
+                onClick={() => {
+                  setSelectedGroup(group);
+                  setSelectedUser(null);
+                }}
+                className={`
+                  w-full p-3 flex items-center gap-3
+                  hover:bg-base-300 transition-colors
+                  ${
+                    selectedGroup?._id === group._id
+                      ? "bg-base-300 ring-1 ring-base-300"
+                      : ""
+                  }
+                `}
+              >
+                <div className="relative mx-auto lg:mx-0">
+                  <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    {group.avatar ? (
+                      <img
+                        src={group.avatar}
+                        alt={group.name}
+                        className="size-12 object-cover rounded-full"
+                      />
+                    ) : (
+                      <Users className="w-6 h-6 text-primary" />
+                    )}
+                  </div>
+                  {onlineMembers.length > 0 && (
+                    <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
+                  )}
+                </div>
+
+                {/* Group info - only visible on larger screens */}
+                <div className="hidden lg:block text-left min-w-0">
+                  <div className="font-medium truncate">{group.name}</div>
+                  <div className="text-sm text-zinc-400">
+                    {group.members?.length} members • {onlineMembers.length} online
+                  </div>
+                </div>
+              </button>
+            );
+          })
+        )}
       </div>
     </aside>
+
+    {/* Create Group Modal */}
+    {showCreateGroup && (
+      <CreateGroupModal onClose={() => setShowCreateGroup(false)} />
+    )}
+    </>
   );
 };
 

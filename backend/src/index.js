@@ -8,6 +8,7 @@ import { app, server } from "./lib/socket.js";
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import chatRoute from "./routes/chat.routes.js";
+import groupRoutes from "./routes/group.routes.js";
 
 //const app = express();
 dotenv.config();
@@ -26,6 +27,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes);
 app.use("/api/chat", chatRoute);
+app.use("/api/group", groupRoutes);
 
 server.listen(PORT, () => {
   console.log("Server is running on port " + PORT);

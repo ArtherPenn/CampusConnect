@@ -2,15 +2,19 @@ import express from "express";
 import protectRoute from "../middleware/auth.middleware.js";
 import {
   getUsersForSearchBar,
-  getMessages,
-  sendMessages,
+  getDirectMessages,
+  getGroupMessages,
+  sendDirectMessage,
+  sendGroupMessage,
 } from "../controllers/message.controllers.js";
 
 const router = express.Router();
 
 router.get("/users", protectRoute, getUsersForSearchBar);
-router.get("/:id", protectRoute, getMessages);
+router.get("/direct/:id", protectRoute, getDirectMessages);
+router.get("/group/:groupId", protectRoute, getGroupMessages);
 
-router.post("/send/:id", protectRoute, sendMessages);
+router.post("/send/direct/:id", protectRoute, sendDirectMessage);
+router.post("/send/group/:groupId", protectRoute, sendGroupMessage);
 
 export default router;

@@ -3,11 +3,11 @@ import { useChatStore } from "../store/useChatStore";
 import { Send, Image, X } from "lucide-react";
 import toast from "react-hot-toast";
 
-const MessageInput = () => {
+const GroupMessageInput = () => {
   const [message, setMessage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
-  const { sendDirectMessage } = useChatStore();
+  const { sendGroupMessage } = useChatStore();
 
   const handleSendMessage = async (event) => {
     event.preventDefault();
@@ -18,12 +18,12 @@ const MessageInput = () => {
     }
 
     try {
-      await sendDirectMessage({ text: message.trim(), image: imagePreview });
+      await sendGroupMessage({ text: message.trim(), image: imagePreview });
       setMessage("");
       setImagePreview(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending group message:", error);
       toast.error("Failed to send message.");
     }
   };
@@ -108,4 +108,4 @@ const MessageInput = () => {
   );
 };
 
-export default MessageInput;
+export default GroupMessageInput;
