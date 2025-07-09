@@ -61,7 +61,8 @@ export const useChatStore = create((set, get) => ({
         `/message/send/direct/${selectedUser._id}`,
         messageData
       );
-      set({ messages: [...messages, response.data] });
+      // Don't add message here - let socket handle it for real-time sync
+      // set({ messages: [...messages, response.data] });
     } catch (error) {
       toast.error("Failed to send message.");
       console.error(
@@ -79,7 +80,8 @@ export const useChatStore = create((set, get) => ({
         `/message/send/group/${selectedGroup._id}`,
         messageData
       );
-      set({ groupMessages: [...groupMessages, response.data] });
+      // Don't add message here - let socket handle it for real-time sync
+      // set({ groupMessages: [...groupMessages, response.data] });
     } catch (error) {
       toast.error("Failed to send group message.");
       console.error(
@@ -96,12 +98,21 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("directMessage", (newMessage) => {
-      //Is message sent from selected user ?
-      if (!(newMessage.senderId === selectedUser._id)) return;
-
-      set({
-        messages: [...get().messages, newMessage],
-      });
+      const { selectedUser } = get();
+      const authUser = useAuthStore.getState().authUser;
+      
+      // Only add message if it's for the currently selected conversation
+      if (selectedUser && (
+        newMessage.senderId._id === selectedUser._id || 
+        newMessage.senderId._id === authUser._id
+      ) && (
+        newMessage.receiverId === authUser._id || 
+        newMessage.receiverId === selectedUser._id
+      )) {
+        set({
+          messages: [...get().messages, newMessage],
+        });
+      }
     });
   },
 
@@ -112,12 +123,14 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("groupMessage", (newMessage) => {
-      // Check if message is for the selected group
-      if (newMessage.groupId !== selectedGroup._id) return;
-
-      set({
-        groupMessages: [...get().groupMessages, newMessage],
-      });
+      const { selectedGroup } = get();
+      
+      // Only add message if it's for the currently selected group
+      if (selectedGroup && newMessage.groupId === selectedGroup._id) {
+        set({
+          groupMessages: [...get().groupMessages, newMessage],
+        });
+      }
     });
 
     socket.on("newGroup", (newGroup) => {

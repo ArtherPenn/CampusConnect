@@ -19,7 +19,9 @@ const ChatContainer = () => {
   const messageScrollEnd = useRef(null);
 
   useEffect(() => {
-    getDirectMessages(selectedUser._id);
+    if (selectedUser?._id) {
+      getDirectMessages(selectedUser._id);
+    }
     subscribeToDirectMessages();
 
     return () => unsubscribeFromDirectMessages();

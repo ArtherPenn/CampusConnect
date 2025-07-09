@@ -21,8 +21,8 @@ const GroupChatContainer = () => {
   useEffect(() => {
     if (selectedGroup?._id) {
       getGroupMessages(selectedGroup._id);
-      subscribeToGroupMessages();
     }
+    subscribeToGroupMessages();
 
     return () => unsubscribeFromGroupMessages();
   }, [

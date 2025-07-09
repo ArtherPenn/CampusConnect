@@ -96,6 +96,11 @@ const sendDirectMessage = async (request, response) => {
       io.to(receiverSocketId).emit("directMessage", populatedMessage);
     }
 
+    // Also emit to sender for real-time update
+    const senderSocketId = getReceiverSocketId(senderId);
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("directMessage", populatedMessage);
+    }
     response.status(201).json(populatedMessage);
   } catch (error) {
     console.error("Error in sendDirectMessage controller:\n", error);
@@ -131,9 +136,8 @@ const sendGroupMessage = async (request, response) => {
     const populatedMessage = await Message.findById(newMessage._id)
       .populate("senderId", "name profilePicture");
 
-    // Send to all group members except sender
+    // Send to all group members including sender for real-time update
     group.members.forEach(memberId => {
-      if (memberId.toString() !== senderId.toString()) {
         const memberSocketId = getReceiverSocketId(memberId);
         if (memberSocketId) {
           io.to(memberSocketId).emit("groupMessage", {
@@ -141,7 +145,6 @@ const sendGroupMessage = async (request, response) => {
             groupId: groupId
           });
         }
-      }
     });
 
     response.status(201).json(populatedMessage);
