@@ -97,20 +97,47 @@ export const useChatStore = create((set, get) => ({
 
     const socket = useAuthStore.getState().socket;
 
+    // socket.on("directMessage", (newMessage) => {
+    //   const { selectedUser } = get();
+    //   const authUser = useAuthStore.getState().authUser;
+
+    //   // Only add message if it's for the currently selected conversation
+    //   if (selectedUser && (
+    //     newMessage.senderId._id === selectedUser._id ||
+    //     newMessage.senderId._id === authUser._id
+    //   ) && (
+    //     newMessage.receiverId === authUser._id ||
+    //     newMessage.receiverId === selectedUser._id
+    //   )) {
+    //     set({
+    //       messages: [...get().messages, newMessage],
+    //     });
+    //   }
+    // });
+
     socket.on("directMessage", (newMessage) => {
+      // Normalize senderId and receiverId to strings
+      const senderId =
+        typeof newMessage.senderId === "object"
+          ? newMessage.senderId._id
+          : newMessage.senderId;
+      const receiverId =
+        typeof newMessage.receiverId === "object"
+          ? newMessage.receiverId._id
+          : newMessage.receiverId;
       const { selectedUser } = get();
       const authUser = useAuthStore.getState().authUser;
-      
-      // Only add message if it's for the currently selected conversation
-      if (selectedUser && (
-        newMessage.senderId._id === selectedUser._id || 
-        newMessage.senderId._id === authUser._id
-      ) && (
-        newMessage.receiverId === authUser._id || 
-        newMessage.receiverId === selectedUser._id
-      )) {
+
+      if (
+        selectedUser &&
+        (senderId === selectedUser._id || senderId === authUser._id) &&
+        (receiverId === authUser._id || receiverId === selectedUser._id)
+      ) {
         set({
-          messages: [...get().messages, newMessage],
+          messages: [
+            ...get().messages,
+            { ...newMessage, senderId, receiverId },
+          ],
         });
       }
     });
@@ -124,7 +151,7 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("groupMessage", (newMessage) => {
       const { selectedGroup } = get();
-      
+
       // Only add message if it's for the currently selected group
       if (selectedGroup && newMessage.groupId === selectedGroup._id) {
         set({
@@ -141,7 +168,7 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("groupUpdated", (updatedGroup) => {
       set({
-        groups: get().groups.map(group => 
+        groups: get().groups.map((group) =>
           group._id === updatedGroup._id ? updatedGroup : group
         ),
       });
@@ -171,7 +198,7 @@ export const useChatStore = create((set, get) => ({
       const response = await axiosInstance.get(
         `/chat/contacts/${authUser._id}`
       );
-      set({ users: response.data[0].contacts});
+      set({ users: response.data[0].contacts });
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users.");
@@ -222,10 +249,13 @@ export const useChatStore = create((set, get) => ({
     try {
       const response = await axiosInstance.put(`/group/${groupId}`, updateData);
       set({
-        groups: get().groups.map(group => 
+        groups: get().groups.map((group) =>
           group._id === groupId ? response.data : group
         ),
-        selectedGroup: get().selectedGroup?._id === groupId ? response.data : get().selectedGroup,
+        selectedGroup:
+          get().selectedGroup?._id === groupId
+            ? response.data
+            : get().selectedGroup,
       });
       return response.data;
     } catch (error) {
@@ -236,12 +266,17 @@ export const useChatStore = create((set, get) => ({
 
   addMemberToGroup: async (groupId, memberIds) => {
     try {
-      const response = await axiosInstance.put(`/group/${groupId}/add-member`, { memberIds });
+      const response = await axiosInstance.put(`/group/${groupId}/add-member`, {
+        memberIds,
+      });
       set({
-        groups: get().groups.map(group => 
+        groups: get().groups.map((group) =>
           group._id === groupId ? response.data : group
         ),
-        selectedGroup: get().selectedGroup?._id === groupId ? response.data : get().selectedGroup,
+        selectedGroup:
+          get().selectedGroup?._id === groupId
+            ? response.data
+            : get().selectedGroup,
       });
       return response.data;
     } catch (error) {
@@ -252,12 +287,17 @@ export const useChatStore = create((set, get) => ({
 
   removeMemberFromGroup: async (groupId, memberId) => {
     try {
-      const response = await axiosInstance.delete(`/group/${groupId}/remove-member/${memberId}`);
+      const response = await axiosInstance.delete(
+        `/group/${groupId}/remove-member/${memberId}`
+      );
       set({
-        groups: get().groups.map(group => 
+        groups: get().groups.map((group) =>
           group._id === groupId ? response.data : group
         ),
-        selectedGroup: get().selectedGroup?._id === groupId ? response.data : get().selectedGroup,
+        selectedGroup:
+          get().selectedGroup?._id === groupId
+            ? response.data
+            : get().selectedGroup,
       });
       return response.data;
     } catch (error) {

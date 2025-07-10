@@ -4,28 +4,28 @@ import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
 
 const CreateGroupModal = ({ onClose }) => {
-  const { allUsers, createGroup } = useChatStore();
+  const { users, createGroup } = useChatStore();
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleMemberToggle = (userId) => {
-    setSelectedMembers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
+    setSelectedMembers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
         : [...prev, userId]
     );
   };
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
-    
+
     if (!groupName.trim()) {
       toast.error("Group name is required");
       return;
     }
-    
+
     if (selectedMembers.length === 0) {
       toast.error("Please select at least one member");
       return;
@@ -36,7 +36,7 @@ const CreateGroupModal = ({ onClose }) => {
       await createGroup({
         name: groupName.trim(),
         description: groupDescription.trim(),
-        memberIds: selectedMembers
+        memberIds: selectedMembers,
       });
       toast.success("Group created successfully!");
       onClose();
@@ -103,28 +103,33 @@ const CreateGroupModal = ({ onClose }) => {
               </span>
             </label>
             <div className="border border-base-300 rounded-lg max-h-48 overflow-y-auto">
-              {allUsers.length === 0 ? (
+              {users.length === 0 ? (
                 <div className="p-4 text-center text-base-content/60">
                   No users available
                 </div>
               ) : (
                 <div className="p-2 space-y-1">
-                  {allUsers.map(user => (
-                    <label key={user._id} className="flex items-center gap-3 p-2 hover:bg-base-200 rounded cursor-pointer">
+                  {users.map((user) => (
+                    <label
+                      key={user._id}
+                      className="flex items-center gap-3 p-2 hover:bg-base-200 rounded cursor-pointer"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedMembers.includes(user._id)}
                         onChange={() => handleMemberToggle(user._id)}
                         className="checkbox checkbox-primary checkbox-sm"
                       />
-                      <img 
-                        src={user.profilePicture || "/avatar.png"} 
+                      <img
+                        src={user.profilePicture || "/avatar.png"}
                         alt={user.name}
                         className="size-8 rounded-full"
                       />
                       <div className="flex-1">
                         <p className="font-medium text-sm">{user.name}</p>
-                        <p className="text-xs text-base-content/60">{user.email}</p>
+                        <p className="text-xs text-base-content/60">
+                          {user.email}
+                        </p>
                       </div>
                     </label>
                   ))}
@@ -144,7 +149,9 @@ const CreateGroupModal = ({ onClose }) => {
             </button>
             <button
               type="submit"
-              disabled={isCreating || !groupName.trim() || selectedMembers.length === 0}
+              disabled={
+                isCreating || !groupName.trim() || selectedMembers.length === 0
+              }
               className="btn btn-primary flex-1"
             >
               {isCreating ? "Creating..." : "Create Group"}

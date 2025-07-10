@@ -30,7 +30,7 @@ const getDirectMessages = async (request, response) => {
   try {
     const { id: chatToUserId } = request.params;
     const currentUserId = request.user._id;
-
+ 
     const messages = await Message.find({
       messageType: "direct",
       $or: [

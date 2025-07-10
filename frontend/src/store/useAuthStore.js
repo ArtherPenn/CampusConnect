@@ -44,7 +44,7 @@ export const useAuthStore = create((set, get) => ({
       set({ isSigningIn: false });
     }
   },
- 
+
   logIn: async (formData) => {
     set({ isLoggedIn: true });
     try {
