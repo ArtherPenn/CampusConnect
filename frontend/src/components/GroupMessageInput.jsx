@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 const GroupMessageInput = () => {
   const [message, setMessage] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef(null);
   const { sendGroupMessage } = useChatStore();
 
@@ -17,6 +18,9 @@ const GroupMessageInput = () => {
       return;
     }
 
+    if (isSending) return;
+
+    setIsSending(true);
     try {
       await sendGroupMessage({ text: message.trim(), image: imagePreview });
       setMessage("");
@@ -25,6 +29,8 @@ const GroupMessageInput = () => {
     } catch (error) {
       console.error("Error sending group message:", error);
       toast.error("Failed to send message.");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -36,6 +42,11 @@ const GroupMessageInput = () => {
       return;
     }
 
+    // Check file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be less than 5MB.");
+      return;
+    }
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -63,6 +74,7 @@ const GroupMessageInput = () => {
               className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300
               flex items-center justify-center"
               type="button"
+              disabled={isSending}
             >
               <X className="size-3" />
             </button>
@@ -78,6 +90,7 @@ const GroupMessageInput = () => {
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            disabled={isSending}
           />
           <input
             type="file"
@@ -85,6 +98,7 @@ const GroupMessageInput = () => {
             className="hidden"
             ref={fileInputRef}
             onChange={handleImageChange}
+            disabled={isSending}
           />
 
           <button
@@ -92,6 +106,7 @@ const GroupMessageInput = () => {
             className={`hidden sm:flex btn btn-circle
                      ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
             onClick={() => fileInputRef.current?.click()}
+            disabled={isSending}
           >
             <Image size={20} />
           </button>
@@ -99,9 +114,13 @@ const GroupMessageInput = () => {
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={!message.trim() && !imagePreview}
+          disabled={(!message.trim() && !imagePreview) || isSending}
         >
-          <Send size={22} />
+          {isSending ? (
+            <div className="loading loading-spinner loading-xs"></div>
+          ) : (
+            <Send size={22} />
+          )}
         </button>
       </form>
     </div>

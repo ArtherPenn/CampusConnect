@@ -76,7 +76,14 @@ const sendDirectMessage = async (request, response) => {
     let { text, image } = request.body;
 
     if (image) {
+      // Optimize image upload with smaller file size and quality
       const cloudinaryResponse = await cloudinary.uploader.upload(image);
+        quality: "auto:low",
+        fetch_format: "auto",
+        width: 800,
+        height: 600,
+        crop: "limit"
+      });
       image = cloudinaryResponse.secure_url;
     }
 
@@ -121,7 +128,14 @@ const sendGroupMessage = async (request, response) => {
     }
 
     if (image) {
+      // Optimize image upload with smaller file size and quality
       const cloudinaryResponse = await cloudinary.uploader.upload(image);
+        quality: "auto:low",
+        fetch_format: "auto",
+        width: 800,
+        height: 600,
+        crop: "limit"
+      });
       image = cloudinaryResponse.secure_url;
     }
 

@@ -36,6 +36,9 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: currentUser.data });
       toast.success("Account created successfully!");
 
+      // Clear any existing chat data when signing in
+      const { useChatStore } = await import("./useChatStore");
+      useChatStore.getState().clearChatData();
       get().connectSocket();
     } catch (error) {
       console.error("Error signing in:", error);
@@ -52,6 +55,9 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: response.data });
       toast.success("Logged in successfully!");
 
+      // Clear any existing chat data when logging in
+      const { useChatStore } = await import("./useChatStore");
+      useChatStore.getState().clearChatData();
       get().connectSocket();
     } catch (error) {
       console.error("Error logging in:", error);
@@ -67,6 +73,9 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: null });
       toast.success("Logged out successfully!");
 
+      // Clear chat data when logging out
+      const { useChatStore } = await import("./useChatStore");
+      useChatStore.getState().clearChatData();
       get().disconnectSocket();
     } catch (error) {
       console.error("Error logging out:", error);

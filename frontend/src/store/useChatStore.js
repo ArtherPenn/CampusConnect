@@ -14,6 +14,18 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
 
+  // Clear all chat data (useful when switching users)
+  clearChatData: () => {
+    set({
+      users: [],
+      allUsers: [],
+      groups: [],
+      messages: [],
+      groupMessages: [],
+      selectedUser: null,
+      selectedGroup: null,
+    });
+  },
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {
@@ -69,6 +81,7 @@ export const useChatStore = create((set, get) => ({
         "Error sending message:",
         error.response?.data?.message || error.message
       );
+      throw error; // Re-throw to handle in component
     }
   },
 
@@ -88,6 +101,7 @@ export const useChatStore = create((set, get) => ({
         "Error sending group message:",
         error.response?.data?.message || error.message
       );
+      throw error; // Re-throw to handle in component
     }
   },
 
@@ -177,14 +191,18 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromDirectMessages: () => {
     const socket = useAuthStore.getState().socket;
+    if (socket) {
     socket.off("directMessage");
+    }
   },
 
   unsubscribeFromGroupMessages: () => {
     const socket = useAuthStore.getState().socket;
+    if (socket) {
     socket.off("groupMessage");
     socket.off("newGroup");
     socket.off("groupUpdated");
+    }
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),
