@@ -32,8 +32,13 @@ export const useChatStore = create((set, get) => ({
       const response = await axiosInstance.get("/message/users");
       set({ allUsers: response.data });
     } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load users.");
+      // Only show error if it's not a 404 (no users found)
+      if (error.response?.status !== 404) {
+        console.error("Error fetching users:", error);
+        toast.error("Failed to load users.");
+      } else {
+        set({ allUsers: [] });
+      }
     } finally {
       set({ isUsersLoading: false });
     }
@@ -216,10 +221,20 @@ export const useChatStore = create((set, get) => ({
       const response = await axiosInstance.get(
         `/chat/contacts/${authUser._id}`
       );
-      set({ users: response.data[0].contacts });
+      // Handle case where user has no contacts yet
+      if (response.data && response.data.length > 0 && response.data[0].contacts) {
+        set({ users: response.data[0].contacts });
+      } else {
+        set({ users: [] });
+      }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load users.");
+      // Only show error if it's not a 404 (no contacts found)
+      if (error.response?.status !== 404) {
+        console.error("Error fetching added users:", error);
+        toast.error("Failed to load contacts.");
+      } else {
+        set({ users: [] });
+      }
     } finally {
       set({ isUsersLoading: false });
     }
