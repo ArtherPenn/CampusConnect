@@ -9,6 +9,8 @@ import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import chatRoute from "./routes/chat.routes.js";
 import groupRoutes from "./routes/group.routes.js";
+import eventRoutes from "./routes/event.routes.js";
+import { startEventScheduler } from "./lib/scheduler.js";
 
 //const app = express();
 dotenv.config();
@@ -28,8 +30,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes);
 app.use("/api/chat", chatRoute);
 app.use("/api/group", groupRoutes);
+app.use("/api/event", eventRoutes);
 
 server.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
   connectDB();
+  startEventScheduler();
 });

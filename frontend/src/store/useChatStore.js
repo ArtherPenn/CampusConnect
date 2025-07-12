@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   groups: [],
   messages: [],
   groupMessages: [],
+  events: [],
   selectedUser: null,
   selectedGroup: null,
   isUsersLoading: false,
@@ -22,6 +23,7 @@ export const useChatStore = create((set, get) => ({
       groups: [],
       messages: [],
       groupMessages: [],
+      events: [],
       selectedUser: null,
       selectedGroup: null,
     });
@@ -335,6 +337,37 @@ export const useChatStore = create((set, get) => ({
       return response.data;
     } catch (error) {
       console.error("Error removing member from group:", error);
+      throw error;
+    }
+  },
+
+  // Event functions
+  createEvent: async (eventData) => {
+    try {
+      const response = await axiosInstance.post("/event/create", eventData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating event:", error);
+      throw error;
+    }
+  },
+
+  getGroupEvents: async (groupId) => {
+    try {
+      const response = await axiosInstance.get(`/event/group/${groupId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching group events:", error);
+      throw error;
+    }
+  },
+
+  deleteEvent: async (eventId) => {
+    try {
+      const response = await axiosInstance.delete(`/event/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting event:", error);
       throw error;
     }
   },

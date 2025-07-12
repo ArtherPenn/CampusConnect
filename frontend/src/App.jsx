@@ -12,6 +12,7 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
+import EventNotification from "./components/EventNotification.jsx";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -61,6 +62,7 @@ const App = () => {
       </Routes>
 
       <Toaster />
+      <EventNotification />
     </div>
   );
 };

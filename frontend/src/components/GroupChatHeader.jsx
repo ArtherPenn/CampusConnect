@@ -1,13 +1,15 @@
-import { X, Users, Settings } from "lucide-react";
+import { X, Users, Settings, Calendar } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useState } from "react";
 import GroupSettingsModal from "./GroupSettingsModal";
+import CalendarModal from "./CalendarModal";
 
 const GroupChatHeader = () => {
   const { selectedGroup, setSelectedGroup } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const [showSettings, setShowSettings] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const onlineMembers = selectedGroup?.members?.filter(member => 
     onlineUsers.includes(member._id)
@@ -39,6 +41,15 @@ const GroupChatHeader = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Calendar button */}
+            <button 
+              onClick={() => setShowCalendar(true)}
+              className="p-2 hover:bg-base-200 rounded-lg transition-colors"
+              title="Group Events"
+            >
+              <Calendar className="w-5 h-5" />
+            </button>
+
             {/* Settings button */}
             <button 
               onClick={() => setShowSettings(true)}
@@ -60,6 +71,14 @@ const GroupChatHeader = () => {
         <GroupSettingsModal 
           group={selectedGroup}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* Calendar Modal */}
+      {showCalendar && (
+        <CalendarModal 
+          group={selectedGroup}
+          onClose={() => setShowCalendar(false)}
         />
       )}
     </>
